@@ -1,0 +1,44 @@
+springmvc 通过源码看流程
+	用户请求到达DispatcherServlet,继承FrameworkServlet(也是spring提供的类)
+									FrameworkServlet继承HttpServletBean 
+	既然继承了servlet,就会有一个service方法
+		service方法 HttpServletBean没有,在FrameworkServlet中
+		这个方法就是得到客户端请求
+		service方法 判断请求方法是否为PATCH,不是则调用父类的service方法(HttpServletBean 其实还是调用该类的doPost,doGet...)
+		进入processRequest 然后进入doService方法 
+		回到DispatcherServlet 找到关键的部分	doDispatch(分发请求)
+		先是创建了一个ModelAndView对象,
+			然后根据请求找到程序执行链
+				到获取程序执行链,循环得到合适的处理器映射器,调用getHandler方法得到程序执行链
+		然后再根据程序执行链的处理器得到了处理器适配器
+		然后适配处理器执行处理Handler,返回modelandview,
+		
+		然后对mv进行解析
+		调用 processDispatchResult进行处理
+			render方法
+				根据视图模型,response, 调用resolveViewName 进行视图解析返回具体的视图
+				
+总结	
+	用户发起请求到DispatcherServlet,由于DispatcherServlet继承了FrameworkServlet,FrameworkServlet继承HttpServletBeans
+	springmvc本质就是一个servlet ,所以在FrameworkServlet有个service方法得到客户端请求
+	在service方法中判断请求是否为patch,不是的话调用父类的service方法,其实还是调用本类的doGet doPost,因为FrameworkServlet继承了HttpServletBeans
+	doGet或者doPost内部调用了处理请求方法processRequest
+	processRequest 内部调用了doService方法
+	再点进doService已经回到了DispatcherServlet,看doService内部 关键部分调用doDispatch方法
+	进入doDispatch 
+		先创建了一个空的模型视图
+		然后检查该次请求是否是文件上传请求
+		根据请求获得程序执行链
+			根据请求找到合适的处理器映射器
+		然后再根据程序执行链的处理器找到处理器适配器
+		处理器适配器执行处理程序链的Handler,(三个参数 分别是请求,响应以及程序链的处理器)
+		处理器适配器执行完成返回一个具体的视图模型
+		为模型视图默认命名
+		处理器拦截器进行处理
+		接下来 processDispatchResult进行视图解析
+			内部调用了一个render的方法
+				render内部调用resolveViewName 进行视图解析返回具体的view
+				得到的view又调用了一个render方法
+					进行视图渲染
+	
+	springmvc请求处理器 controller
